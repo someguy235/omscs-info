@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<style>
+	.axis .domain {
+  		display: none;
+	}
+	</style>
+</head>
+
+<body>
+	<svg width="2000" height="500"></svg>
+	<script>
+	document.addEventListener("DOMContentLoaded", function(event) { 
+		
+	var svg = d3.select("svg"),
+	    margin = {top: 20, right: 20, bottom: 70, left: 40},
+	    width = +svg.attr("width") - margin.left - margin.right,
+	    height = +svg.attr("height") - margin.top - margin.bottom,
+	    g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	console.log("height: "+ height);
+	
+	/* x-axis stuff */
+	var x = d3.scaleBand()
+	    .rangeRound([0, width])
+	    .paddingInner(0.05)
+	    .align(0.1);
+	
+	var xAxis = d3.axisBottom(x)
+    	//.tickFormat(d3.timeFormat("%Y-%m"));
+	
+	var classesFound = [];
+	var firstDayOfClass = [];
+	x.domain(data.map(function(d) {
+		if(!classesFound.includes(d.name)){
+			classesFound.push(d.name);
+			if(!firstDayOfClass.includes(d.date)){
+				firstDayOfClass.push(d.date);
+				console.log(d.date);
+			}
+		}
+		return d.date; 
+	}));
+
+	xAxis.tickValues(firstDayOfClass);
+
+	/* y-axis stuff */
+	var y = d3.scaleLinear()
+    	.rangeRound([height, 0]);
+	y.domain([0, d3.max(data, function(d) { return d.hours; })]).nice();
+	
+	var z = d3.scaleOrdinal()
+    	.range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "#ff5566"]);
+
+	//var keys = data.columns.slice(1);
+	var keys = classesFound;
+	z.domain(keys);
+	
+	g.append("g")
+    	.selectAll("g")
+    	.data(d3.stack().keys(keys)(data))
+    	.enter().append("g")
+//       		.attr("fill", function(d) {
+//       			console.log(d);
+//       			return z(d.name);
+//       			return z(d.key); 
+//       		})
+    	.selectAll("rect")
+    	.data(function(d) { return d; })
+    	.enter().append("rect")
+			//.attr("x", function(d) { return x(d.data.State); })
+			.attr("x", function(d) { return x(d.data.date); })
+			//.attr("y", function(d) { return y(d[1]); })
+			.attr("y", function(d) { 
+				//return 0;
+				return y(d.data.hours);
+			})
+			//.attr("height", function(d) { return y(d[0]) - y(d[1]); })
+			.attr("height", function(d) { 
+// 				console.log(d.data.hours);
+// 				console.log(y(d.data.hours));
+				return height - y(d.data.hours);
+				//return 10;
+			})
+			.attr("width", x.bandwidth())
+			.attr("fill", function(d) {
+//       			console.log(d);
+      			return z(d.data.name);
+//       			return z(d.key); 
+      		})
+
+	
+	g.append("g")
+    	.attr("class", "axis")
+    	.attr("transform", "translate(0," + height + ")")
+    	.call(xAxis)
+		.selectAll("text")
+	    .style("text-anchor", "end")
+	    .attr("dx", "-.8em")
+	    .attr("dy", "-.55em")
+	    .attr("transform", "rotate(-90)" );
+    	//.call(d3.axisBottom(x));
+
+    	
+	
+	
+	
+	});
+	</script>
+	<script src="data/omscs-info.json"></script>
+	<script src="js/d3.min.js"></script>
+</body>
+</html>

@@ -21,6 +21,7 @@ public class JsonCreator {
 			Statement courseListStatement = connection.createStatement();  
 			Statement instanceStatement = connection.createStatement();
 	        
+			/*
 			courseList = courseListStatement  
 	                 .executeQuery("SELECT DISTINCT name FROM metrics WHERE name LIKE 'CS%'");
 			
@@ -39,7 +40,21 @@ public class JsonCreator {
 				}
 		        coursesObj.put(course, instances);
 			}
-	        
+	        */
+  			
+			JSONObject coursesObj = new JSONObject();
+			instanceList = instanceStatement
+					.executeQuery("SELECT name, date, count FROM instances WHERE name LIKE 'CS%'");
+			JSONArray instances = new JSONArray();  
+	        while(instanceList.next()){
+	        	JSONObject instance = new JSONObject();
+	        	instance.put("name", instanceList.getString("name"));
+	        	instance.put("date", instanceList.getString("date"));
+	        	instance.put("hours", instanceList.getString("count"));
+	        	instances.add(instance);
+			}
+			coursesObj.put("data", instances);
+
             // Writing to a file  
             File file=new File("files/omscs-info.json");  
             file.createNewFile();  
@@ -47,7 +62,7 @@ public class JsonCreator {
             System.out.println("Writing JSON object to file");  
             System.out.println("-----------------------");  
             System.out.print(coursesObj);  
-  
+
             fileWriter.write(coursesObj.toJSONString());  
             fileWriter.flush();  
             fileWriter.close();  
